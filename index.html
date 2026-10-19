@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistem Harian</title>
+<style>
+:root {
+  --site-primary: #245b4b;
+  --site-on-primary: #ffffff;
+  --site-secondary: #e7efe9;
+  --site-on-secondary: #203a31;
+  --site-background: #f5f7f3;
+  --site-on-background: #1c2923;
+  --site-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  --surface: light-dark(#ffffff, #1b2520);
+  --surface-muted: light-dark(#eef2ed, #25312b);
+  --text-muted: light-dark(#627168, #aab9af);
+  --line: light-dark(#dce5dd, #34453b);
+  --accent-soft: light-dark(#e4f2e9, #294337);
+  --gold: light-dark(#f4e7c8, #4a4029);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--site-font-body); background: var(--site-background); color: var(--site-on-background); }
+#app { min-height: 100vh; width: 100%; background-color: var(--site-background); color: var(--site-on-background); border-radius: 0; }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+.topbar { background: var(--site-primary); color: var(--site-on-primary); padding: 24px max(20px, calc((100vw - 1120px)/2)); position: relative; overflow: hidden; }
+.topbar:after { content:""; position:absolute; width:240px; height:240px; border:1px solid rgba(255,255,255,.18); border-radius:50%; right:8%; top:-130px; box-shadow:0 0 0 28px rgba(255,255,255,.04),0 0 0 58px rgba(255,255,255,.03); opacity:var(--site-decoration-opacity); pointer-events:none; }
+.brandline { display:flex; align-items:center; gap:10px; font-size:13px; opacity:.86; letter-spacing:.08em; text-transform:uppercase; font-weight:700; }
+.hero { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-top:22px; position:relative; z-index:1; }
+h1,h2,h3,p { margin-top:0; }
+h1 { font-family:var(--site-font-heading); font-size:calc(36px * var(--site-heading-scale)); letter-spacing:-.04em; line-height:1.06; margin-bottom:12px; max-width:620px; }
+.hero p { max-width:560px; margin-bottom:0; color:rgba(255,255,255,.78); line-height:1.55; }
+.date-chip { border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:10px 14px; font-size:13px; white-space:nowrap; background:rgba(255,255,255,.08); }
+main { max-width:1120px; padding:24px 20px 48px; margin:0 auto; }
+.nav { display:flex; gap:8px; overflow-x:auto; padding:5px; border:1px solid var(--line); background:var(--surface); border-radius:calc(18px * var(--site-radius-scale)); margin-bottom:22px; }
+.nav button { border:0; border-radius:12px; background:transparent; color:var(--text-muted); padding:11px 16px; font-weight:650; white-space:nowrap; }
+.nav button.active { background:var(--site-primary); color:var(--site-on-primary); }
+.grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:calc(20px * var(--site-radius-scale)); padding:20px; min-width:0; }
+.span-8 { grid-column:span 8; } .span-7 { grid-column:span 7; } .span-6 { grid-column:span 6; } .span-5 { grid-column:span 5; } .span-4 { grid-column:span 4; } .span-12 { grid-column:span 12; }
+.card-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:16px; }
+h2 { font-size:calc(20px * var(--site-heading-scale)); letter-spacing:-.025em; margin-bottom:5px; }
+h3 { font-size:15px; margin-bottom:6px; }
+.sub { color:var(--text-muted); font-size:13px; line-height:1.5; margin-bottom:0; }
+.kicker { font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:7px; }
+.stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.stat { padding:14px; background:var(--surface-muted); border-radius:14px; }
+.stat strong { display:block; font-size:24px; letter-spacing:-.04em; margin:3px 0; }
+.stat span { font-size:12px; color:var(--text-muted); }
+.progress-track { height:8px; border-radius:99px; background:var(--surface-muted); overflow:hidden; margin:14px 0 7px; }
+.progress-fill { height:100%; background:var(--site-primary); border-radius:99px; width:0; transition:width .2s ease; }
+.task-list { display:grid; gap:9px; }
+.task { display:flex; align-items:flex-start; gap:11px; padding:11px 12px; border:1px solid var(--line); border-radius:13px; background:var(--surface); }
+.task input { accent-color:var(--site-primary); width:17px; height:17px; margin-top:2px; flex-shrink:0; }
+.task label { flex:1; line-height:1.4; font-size:14px; cursor:pointer; }
+.task small { display:block; color:var(--text-muted); margin-top:4px; font-size:12px; }
+.task.done label { color:var(--text-muted); text-decoration:line-through; }
+.tag { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 9px; background:var(--accent-soft); color:var(--site-on-secondary); font-size:11px; font-weight:750; }
+.tag.gold { background:var(--gold); }
+.schedule { display:grid; gap:0; }
+.slot { display:grid; grid-template-columns:112px 1fr; gap:14px; padding:13px 0; border-bottom:1px solid var(--line); }
+.slot:last-child { border-bottom:0; }
+.time { color:var(--site-primary); font-size:13px; font-weight:800; padding-top:2px; }
+.slot-title { font-size:14px; font-weight:700; margin-bottom:4px; }
+.slot-desc { font-size:12px; color:var(--text-muted); line-height:1.5; }
+.callout { background:var(--accent-soft); border-radius:14px; padding:14px; font-size:13px; line-height:1.55; color:var(--site-on-secondary); }
+.field { display:grid; gap:6px; margin-bottom:13px; }
+.field label { font-size:13px; font-weight:700; }
+.field input,.field textarea,.field select { width:100%; border:1px solid var(--line); background:var(--surface); color:var(--site-on-background); padding:11px 12px; border-radius:12px; outline:none; }
+.field textarea { min-height:84px; resize:vertical; }
+.field input:focus,.field textarea:focus,.field select:focus { border-color:var(--site-primary); box-shadow:0 0 0 3px color-mix(in srgb, var(--site-primary) 14%, transparent); }
+.btn { border:1px solid var(--line); border-radius:12px; padding:10px 14px; background:var(--surface); color:var(--site-on-background); font-weight:750; font-size:13px; }
+.btn.primary { background:var(--site-primary); border-color:var(--site-primary); color:var(--site-on-primary); }
+.btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+.tabs-small { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:15px; }
+.tabs-small button { border:1px solid var(--line); background:var(--surface); color:var(--text-muted); padding:8px 11px; border-radius:999px; font-size:12px; font-weight:700; }
+.tabs-small button.active { background:var(--site-secondary); color:var(--site-on-secondary); border-color:transparent; }
+.hidden { display:none !important; }
+.journal-entry { padding:14px 0; border-bottom:1px solid var(--line); }
+.journal-entry:last-child { border-bottom:0; }
+.journal-entry strong { display:block; margin-bottom:4px; }
+.journal-entry p { font-size:13px; color:var(--text-muted); white-space:pre-wrap; line-height:1.5; margin:0; }
+.empty { color:var(--text-muted); text-align:center; padding:24px 10px; font-size:13px; }
+footer { text-align:center; padding:20px; color:var(--text-muted); font-size:12px; }
+@media (max-width:760px) { .hero { display:block; } .date-chip { display:inline-block; margin-top:18px; } h1 { font-size:calc(31px * var(--site-heading-scale)); } .span-8,.span-7,.span-6,.span-5,.span-4 { grid-column:span 12; } .stats { grid-template-columns:repeat(3,minmax(0,1fr)); } .stat { padding:11px; } .stat strong { font-size:20px; } .slot { grid-template-columns:95px 1fr; gap:9px; } main { padding:17px 13px 35px; } .card { padding:16px; } }
+@media (prefers-color-scheme:dark) { .time { color:#9bd1b4; } }
+</style>
+</head>
+<body>
+<div id="app" data-sites-preview-theme="custom">
+  <header class="topbar">
+    <div class="brandline"><span>✦</span> Ruang Ritme · Personal dashboard</div>
+    <div class="hero">
+      <div>
+        <h1>Jalani hari dengan niat, fokus, dan konsisten.</h1>
+        <p>Satu tempat untuk menjaga ibadah, menyelesaikan kuliah, mengatur makan, dan belajar membaca pasar tanpa mengorbankan waktu tidur.</p>
+      </div>
+      <div class="date-chip" id="today">Memuat tanggal…</div>
+    </div>
+  </header>
+  <main>
+    <nav class="nav" aria-label="Navigasi aplikasi">
+      <button class="active" data-view="dashboard">Ringkasan</button>
+      <button data-view="schedule">Jadwal harian</button>
+      <button data-view="trading">Trading & analisis</button>
+      <button data-view="journal">Jurnal & evaluasi</button>
+    </nav>
+
+    <section id="view-dashboard" class="view">
+      <div class="grid">
+        <article class="card span-8">
+          <div class="card-head"><div><div class="kicker">Hari ini</div><h2>Checklist rutinitas</h2><p class="sub">Tandai kegiatan setelah selesai. Progres disimpan di perangkat ini.</p></div><span class="tag" id="progress-label">0% selesai</span></div>
+          <div class="stats">
+            <div class="stat"><span>Target tidur</span><strong>22.00</strong><span>mulai bersiap 21.45</span></div>
+            <div class="stat"><span>Waktu kuliah</span><strong>7,5 jam</strong><span>08.00–15.30</span></div>
+            <div class="stat"><span>Fokus malam</span><strong>Trading</strong><span>setelah ibadah & makan</span></div>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="sub" id="progress-detail">0 kegiatan selesai</div>
+          <div style="height:15px"></div>
+          <div class="task-list" id="daily-tasks"></div>
+          <div class="btn-row" style="margin-top:14px"><button class="btn" id="reset-checks">Reset checklist hari ini</button><button class="btn primary" data-goto="schedule">Lihat jadwal lengkap →</button></div>
+        </article>
+        <article class="card span-4">
+          <div class="card-head"><div><div class="kicker">Prioritas</div><h2>Jangan lupakan</h2></div></div>
+          <div class="task-list">
+            <div class="task"><span>☪</span><label>Salat tepat waktu<small>Geser kegiatan fleksibel jika jadwal salat berubah.</small></label></div>
+            <div class="task"><span>◷</span><label>Makan teratur<small>Sarapan dan bekal sebelum kuliah; makan malam setelah Isya.</small></label></div>
+            <div class="task"><span>↗</span><label>Analisis bukan asal transaksi<small>Catat skenario dan risiko. Tidak wajib membuka posisi.</small></label></div>
+            <div class="task"><span>☾</span><label>Tidur pukul 22.00<small>Hentikan analisis menjelang waktu tidur.</small></label></div>
+          </div>
+          <div class="callout" style="margin-top:15px"><strong>Aturan utama</strong><br>Prioritaskan ibadah, kuliah, makan, dan tidur. Trading adalah sesi belajar, bukan kewajiban untuk bertransaksi.</div>
+        </article>
+        <article class="card span-12">
+          <div class="card-head"><div><div class="kicker">Alur harian</div><h2>Ritme yang ingin dijaga</h2></div></div>
+          <div class="stats">
+            <div class="stat"><span>01 · Pagi</span><strong>Ibadah</strong><span>Subuh + Al-Waqi'ah, sarapan & bekal</span></div>
+            <div class="stat"><span>02 · Siang</span><strong>Kuliah</strong><span>Zuhur + Ar-Rahman, kelas sampai 15.30</span></div>
+            <div class="stat"><span>03 · Malam</span><strong>Fokus</strong><span>Magrib + 1 juz, Isya + Al-Mulk, makan & analisis</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-schedule" class="view hidden">
+      <div class="grid">
+        <article class="card span-8">
+          <div class="card-head"><div><div class="kicker">Senin–Jumat</div><h2>Jadwal harian lengkap</h2><p class="sub">Waktu salat perlu mengikuti jadwal resmi setempat. Waktu di bawah adalah kerangka, bukan pengganti jadwal salat.</p></div></div>
+          <div class="tabs-small" id="schedule-filter">
+            <button class="active" data-filter="all">Semua</button><button data-filter="ibadah">Ibadah</button><button data-filter="kampus">Kampus</button><button data-filter="makan">Masak & makan</button><button data-filter="trading">Trading</button>
+          </div>
+          <div class="schedule" id="schedule-list"></div>
+        </article>
+        <aside class="card span-4">
+          <div class="kicker">Bacaan yang ditetapkan</div><h2>Rutinitas ibadah</h2>
+          <div class="task-list" style="margin-top:15px">
+            <div class="task"><span>🌅</span><label>Subuh<small>Salat Subuh → Surah Al-Waqi'ah (target 15 menit).</small></label></div>
+            <div class="task"><span>☀️</span><label>Zuhur<small>Salat Zuhur → Surah Ar-Rahman saat jeda kuliah memungkinkan.</small></label></div>
+            <div class="task"><span>📖</span><label>Magrib<small>Salat Magrib → membaca Al-Qur'an 1 juz.</small></label></div>
+            <div class="task"><span>🌙</span><label>Isya<small>Salat Isya → Surah Al-Mulk, kemudian memasak dan makan malam.</small></label></div>
+          </div>
+          <div class="callout" style="margin-top:15px">Jika membaca satu juz berlangsung hingga waktu Isya, jeda bacaan untuk salat ketika waktunya masuk, lalu lanjutkan setelahnya. Jangan memaksakan semua blok tepat pada menit yang sama.</div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-trading" class="view hidden">
+      <div class="grid">
+        <article class="card span-5">
+          <div class="kicker">Sesi malam</div><h2>Rencana analisis pasar</h2><p class="sub" style="margin-bottom:16px">Gunakan data pasar terkini dari platform yang kamu pakai. Aplikasi ini tidak menarik harga langsung dan tidak memberikan sinyal beli/jual.</p>
+          <div class="field"><label for="market">Pasar / instrumen yang diamati</label><input id="market" placeholder="Contoh: saham, forex, indeks, kripto" /></div>
+          <div class="field"><label for="timeframe">Timeframe</label><select id="timeframe"><option>5 menit</option><option>15 menit</option><option>1 jam</option><option>4 jam</option><option>Harian</option></select></div>
+          <div class="field"><label for="trend">Kondisi pasar</label><select id="trend"><option>Belum ditentukan</option><option>Tren naik</option><option>Tren turun</option><option>Sideways / mendatar</option><option>Volatil / tidak jelas</option></select></div>
+          <div class="field"><label for="levels">Area penting / struktur harga</label><textarea id="levels" placeholder="Tulis support, resistance, struktur, dan apa yang kamu lihat..."></textarea></div>
+          <div class="field"><label for="scenario">Skenario dan konfirmasi yang ditunggu</label><textarea id="scenario" placeholder="Jika kondisi A terjadi, saya akan menilai ulang. Jika tidak, tidak ada transaksi."></textarea></div>
+          <div class="field"><label for="risk">Risiko / invalidasi</label><textarea id="risk" placeholder="Apa yang membatalkan skenario? Apa batas risiko? Hindari leverage berlebihan."></textarea></div>
+          <div class="btn-row"><button class="btn primary" id="save-analysis">Simpan analisis</button><button class="btn" id="clear-analysis">Kosongkan</button></div>
+        </article>
+        <article class="card span-7">
+          <div class="card-head"><div><div class="kicker">Checklist sebelum mengambil keputusan</div><h2>Analisis yang disiplin</h2></div><span class="tag gold">Tanpa paksaan transaksi</span></div>
+          <div class="task-list" id="analysis-checks">
+            <div class="task"><input type="checkbox" id="ac1"><label for="ac1">Saya memeriksa data yang benar-benar terkini.<small>Pastikan sumber dan waktu data jelas.</small></label></div>
+            <div class="task"><input type="checkbox" id="ac2"><label for="ac2">Saya menentukan konteks tren dan area harga.<small>Hindari menyimpulkan dari satu candle saja.</small></label></div>
+            <div class="task"><input type="checkbox" id="ac3"><label for="ac3">Saya punya skenario dan syarat invalidasi.<small>Tuliskan kondisi yang membatalkan ide.</small></label></div>
+            <div class="task"><input type="checkbox" id="ac4"><label for="ac4">Saya memahami risiko sebelum mempertimbangkan transaksi.<small>Jika risikonya tidak jelas, tidak mengambil posisi adalah pilihan.</small></label></div>
+            <div class="task"><input type="checkbox" id="ac5"><label for="ac5">Saya tidak mengejar kerugian atau FOMO.<small>Jangan gunakan uang kuliah, kebutuhan harian, atau pinjaman.</small></label></div>
+          </div>
+          <div class="callout" style="margin-top:16px"><strong>Alur 45 menit analisis</strong><br>10 menit konteks pasar · 15 menit struktur & area · 10 menit skenario · 10 menit risiko dan catatan. Jika pasar tidak jelas, catat “tidak ada setup” dan akhiri sesi.</div>
+          <div style="height:18px"></div>
+          <div class="card-head"><div><div class="kicker">Belajar bergiliran</div><h2>Fokus materi mingguan</h2></div></div>
+          <div class="schedule">
+            <div class="slot"><div class="time">Senin</div><div><div class="slot-title">Tren & struktur harga</div><div class="slot-desc">Higher high, higher low, lower high, lower low.</div></div></div>
+            <div class="slot"><div class="time">Selasa</div><div><div class="slot-title">Support & resistance</div><div class="slot-desc">Area harga penting dan reaksi harga.</div></div></div>
+            <div class="slot"><div class="time">Rabu</div><div><div class="slot-title">Candlestick & volume</div><div class="slot-desc">Gunakan sebagai konteks, bukan jaminan.</div></div></div>
+            <div class="slot"><div class="time">Kamis</div><div><div class="slot-title">Manajemen risiko</div><div class="slot-desc">Ukuran posisi, risiko-imbalan, batas kerugian.</div></div></div>
+            <div class="slot"><div class="time">Jumat</div><div><div class="slot-title">Evaluasi jurnal</div><div class="slot-desc">Nilai proses dan konsistensi, bukan hanya hasil.</div></div></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-journal" class="view hidden">
+      <div class="grid">
+        <article class="card span-7">
+          <div class="kicker">Refleksi sebelum tidur</div><h2>Jurnal harian</h2><p class="sub" style="margin-bottom:17px">Simpan evaluasi singkat hari ini. Usahakan selesai sebelum 21.45.</p>
+          <div class="field"><label for="campus-notes">Apa yang dipelajari di kampus?</label><textarea id="campus-notes" placeholder="Materi yang dipahami, tugas, atau hal yang perlu ditanyakan..."></textarea></div>
+          <div class="field"><label for="ibadah-notes">Evaluasi ibadah dan bacaan</label><textarea id="ibadah-notes" placeholder="Apa yang sudah selesai? Apa yang perlu dilanjutkan dengan tenang?"></textarea></div>
+          <div class="field"><label for="market-notes">Hasil pengamatan pasar</label><textarea id="market-notes" placeholder="Kondisi, skenario, risiko, dan apa yang kamu pelajari..."></textarea></div>
+          <div class="field"><label for="tomorrow-notes">Prioritas untuk besok</label><textarea id="tomorrow-notes" placeholder="Tulis maksimal tiga prioritas yang realistis..."></textarea></div>
+          <div class="btn-row"><button class="btn primary" id="save-journal">Simpan jurnal hari ini</button><button class="btn" id="export-journal">Unduh / ekspor teks</button></div>
+        </article>
+        <article class="card span-5">
+          <div class="card-head"><div><div class="kicker">Catatan tersimpan</div><h2>Riwayat jurnal</h2></div><button class="btn" id="clear-journals">Hapus semua</button></div>
+          <div id="journal-history"><div class="empty">Belum ada jurnal. Simpan refleksi pertamamu.</div></div>
+        </article>
+        <article class="card span-12">
+          <div class="kicker">Penutup hari</div><h2>Standar hari yang baik</h2>
+          <div class="stats">
+            <div class="stat"><span>Proses</span><strong>Hadir</strong><span>Menjalankan prioritas utama sebaik mungkin.</span></div>
+            <div class="stat"><span>Trading</span><strong>Disiplin</strong><span>Analisis berkualitas; tidak harus transaksi.</span></div>
+            <div class="stat"><span>Pemulihan</span><strong>22.00</strong><span>Waktu tidur dijaga meski belum semua sempurna.</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer>Ruang Ritme · Aplikasi demo berjalan di browser ini. Jadwal salat, harga pasar, dan sinyal trading tidak diambil otomatis dari internet.</footer>
+</div>
+<script>
+const $ = (s, root=document) => root.querySelector(s);
+const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+const today = new Date();
+const dayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+$('#today').textContent = today.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const safeGet = (key, fallback) => { try { const x=localStorage.getItem(key); return x ? JSON.parse(x) : fallback; } catch(e) { return fallback; } };
+const safeSet = (key, value) => { try { localStorage.setItem(key,JSON.stringify(value)); } catch(e) {} };
+const taskGroups = [
+ {name:'Ibadah',items:[['subuh','Salat Subuh + Surah Al-Waqi’ah','Target bacaan sekitar 15 menit.'],['zuhur','Salat Zuhur + Surah Ar-Rahman','Sesuaikan dengan jeda kuliah dan waktu salat.'],['asar','Salat Asar','Ikuti waktu salat setempat.'],['magrib','Salat Magrib + Al-Qur’an 1 juz','Jeda bacaan untuk salat lain bila waktunya masuk.'],['isya','Salat Isya + Surah Al-Mulk','Bacaan setelah salat Isya.']]},
+ {name:'Kebutuhan & akademik',items:[['cook-breakfast','Masak sarapan dan bekal','Sebelum berangkat ke kampus.'],['meals','Makan pagi dan siang','Bawa bekal jika memungkinkan.'],['class','Kuliah 08.00–15.30','Catat materi dan tugas.'],['study','Belajar materi kampus 16.30–17.15','Ulang catatan dan kerjakan tugas utama.'],['dinner','Masak dan makan malam setelah Isya','Pilih menu sederhana agar tidak terlalu larut.']]},
+ {name:'Trading & pemulihan',items:[['learn','Belajar satu konsep trading','Fokus pada satu topik setiap sesi.'],['analysis','Analisis pasar terkini','Periksa tren, area, skenario, dan risiko.'],['journal','Tulis jurnal analisis','Catat alasan dan kondisi invalidasi.'],['sleep','Tidur pukul 22.00','Mulai bersiap sekitar 21.45.']]}
+];
+const taskStorageKey = 'ritme-tasks-'+dayKey;
+let checked = safeGet(taskStorageKey,[]);
+function renderTasks(){
+ const root=$('#daily-tasks'); root.innerHTML='';
+ taskGroups.forEach(group=>{
+  const heading=document.createElement('div'); heading.className='kicker'; heading.style.marginTop='8px'; heading.textContent=group.name; root.appendChild(heading);
+  group.items.forEach(([id,title,desc])=>{
+   const row=document.createElement('div'); row.className='task'+(checked.includes(id)?' done':'');
+   const input=document.createElement('input'); input.type='checkbox'; input.id='task-'+id; input.checked=checked.includes(id);
+   input.addEventListener('change',()=>{checked=input.checked?[...checked,id]:checked.filter(x=>x!==id);safeSet(taskStorageKey,checked);renderTasks();});
+   const label=document.createElement('label'); label.htmlFor=input.id; label.textContent=title;
+   const small=document.createElement('small'); small.textContent=desc; label.appendChild(small);
+   row.append(input,label);root.appendChild(row);
+  });
+ });
+ const total=taskGroups.reduce((n,g)=>n+g.items.length,0), done=checked.length, pct=Math.round(done/total*100);
+ $('#progress-label').textContent=pct+'% selesai';$('#progress-fill').style.width=pct+'%';$('#progress-detail').textContent=`${done} dari ${total} kegiatan selesai`;
+}
+renderTasks();
+$('#reset-checks').addEventListener('click',()=>{checked=[];safeSet(taskStorageKey,checked);renderTasks();});
+const schedule = [
+ ['04.30–04.50','Salat Subuh','Awali hari dengan salat. Waktu tepat mengikuti jadwal setempat.','ibadah'],
+ ['04.50–05.05','Surah Al-Waqi’ah','Bacaan setelah Subuh; target sekitar 15 menit.','ibadah'],
+ ['05.05–05.30','Kegiatan pagi','Membaca Al-Qur’an atau rutinitas tenang.','ibadah'],
+ ['05.30–06.10','Mandi, masak sarapan & bekal','Siapkan makanan untuk pagi dan siang.','makan'],
+ ['06.10–06.35','Sarapan pagi','Makan sebelum berangkat.','makan'],
+ ['06.35–07.45','Persiapan dan perjalanan','Sesuaikan dengan jarak ke kampus.','kampus'],
+ ['08.00–12.00','Kuliah','Ikuti kelas dan catat materi penting.','kampus'],
+ ['12.00–12.30','Zuhur, Surah Ar-Rahman & makan siang','Sesuaikan urutan dan durasi dengan waktu salat dan jeda kelas.','ibadah'],
+ ['12.30–15.30','Melanjutkan kuliah','Kelas, praktikum, atau kegiatan kampus.','kampus'],
+ ['15.30–16.00','Asar dan perjalanan pulang','Jika waktu Asar belum masuk, sesuaikan waktu salat dan perjalanan.','ibadah'],
+ ['16.00–16.30','Mandi dan istirahat','Pulihkan tenaga setelah kuliah.','makan'],
+ ['16.30–17.15','Belajar materi kampus','Ulang catatan dan kerjakan tugas penting.','kampus'],
+ ['Saat Magrib','Salat Magrib','Ikuti waktu salat resmi setempat.','ibadah'],
+ ['Setelah Magrib','Membaca Al-Qur’an 1 juz','Jika waktu Isya masuk sebelum selesai, berhenti untuk salat lalu lanjutkan bila perlu.','ibadah'],
+ ['Saat Isya masuk','Salat Isya + Surah Al-Mulk','Dahulukan salat ketika waktunya masuk.','ibadah'],
+ ['Setelah Isya','Memasak makan malam','Pilih menu sederhana; siapkan bahan lebih awal jika memungkinkan.','makan'],
+ ['Berikutnya','Makan malam','Rapikan peralatan setelah makan.','makan'],
+ ['Sesi malam 1','Belajar trading','Pelajari konsep yang sesuai dengan fokus mingguan.','trading'],
+ ['Sesi malam 2','Analisis pasar real-time','Periksa data terkini, tren, area harga, skenario, dan risiko.','trading'],
+ ['Sesi malam 3','Jurnal dan evaluasi','Catat temuan; tidak perlu membuka transaksi jika setup tidak jelas.','trading'],
+ ['21.45–22.00','Akhiri layar dan bersiap tidur','Hentikan analisis agar target tidur terjaga.','makan'],
+ ['22.00','Tidur malam','Jaga rutinitas tidur.','makan']
+];
+function renderSchedule(filter='all'){
+ const root=$('#schedule-list');root.innerHTML='';
+ schedule.filter(s=>filter==='all'||s[3]===filter).forEach(s=>{
+  const row=document.createElement('div');row.className='slot';
+  const time=document.createElement('div');time.className='time';time.textContent=s[0];
+  const body=document.createElement('div');const title=document.createElement('div');title.className='slot-title';title.textContent=s[1];
+  const desc=document.createElement('div');desc.className='slot-desc';desc.textContent=s[2];body.append(title,desc);row.append(time,body);root.appendChild(row);
+ });
+}
+renderSchedule();
+$$('#schedule-filter button').forEach(btn=>btn.addEventListener('click',()=>{$$('#schedule-filter button').forEach(b=>b.classList.toggle('active',b===btn));renderSchedule(btn.dataset.filter);}));
+function showView(view){$$('.view').forEach(el=>el.classList.toggle('hidden',el.id!=='view-'+view));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));window.scrollTo({top:0,behavior:'smooth'});}
+$$('.nav button').forEach(btn=>btn.addEventListener('click',()=>showView(btn.dataset.view)));
+$$('[data-goto]').forEach(btn=>btn.addEventListener('click',()=>showView(btn.dataset.goto)));
+const analysisFields=['market','timeframe','trend','levels','scenario','risk'];
+function loadAnalysis(){const data=safeGet('ritme-analysis-'+dayKey,{});analysisFields.forEach(id=>{if(data[id]!==undefined)$('#'+id).value=data[id];});}
+loadAnalysis();
+$('#save-analysis').addEventListener('click',()=>{const data={};analysisFields.forEach(id=>data[id]=$('#'+id).value);safeSet('ritme-analysis-'+dayKey,data);alert('Analisis tersimpan di browser ini.');});
+$('#clear-analysis').addEventListener('click',()=>{analysisFields.forEach(id=>$('#'+id).value='');safeSet('ritme-analysis-'+dayKey,{});});
+const journalFields=['campus-notes','ibadah-notes','market-notes','tomorrow-notes'];
+function journalData(){const data={};journalFields.forEach(id=>data[id]=$('#'+id).value);return data;}
+function loadJournalForm(){const saved=safeGet('ritme-journal-'+dayKey,{});journalFields.forEach(id=>$('#'+id).value=saved[id]||'');}
+function renderJournals(){const all=safeGet('ritme-journal-history',{});const root=$('#journal-history');root.innerHTML='';const keys=Object.keys(all).sort().reverse();if(!keys.length){root.innerHTML='<div class="empty">Belum ada jurnal. Simpan refleksi pertamamu.</div>';return;}keys.forEach(key=>{const entry=all[key];const wrap=document.createElement('div');wrap.className='journal-entry';const date=document.createElement('strong');date.textContent=new Date(key+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});wrap.appendChild(date);[['Kuliah',entry['campus-notes']],['Ibadah',entry['ibadah-notes']],['Pasar',entry['market-notes']],['Besok',entry['tomorrow-notes']]].forEach(([label,val])=>{if(val){const p=document.createElement('p');p.textContent=label+': '+val;wrap.appendChild(p);}});root.appendChild(wrap);});}
+loadJournalForm();renderJournals();
+$('#save-journal').addEventListener('click',()=>{const entry=journalData();safeSet('ritme-journal-'+dayKey,entry);const all=safeGet('ritme-journal-history',{});all[dayKey]=entry;safeSet('ritme-journal-history',all);renderJournals();alert('Jurnal hari ini tersimpan di browser ini.');});
+$('#export-journal').addEventListener('click',()=>{const entry=journalData();const lines=['JURNAL HARIAN — '+today.toLocaleDateString('id-ID'),'', 'Kuliah:',entry['campus-notes']||'-','','Ibadah:',entry['ibadah-notes']||'-','','Analisis pasar:',entry['market-notes']||'-','','Prioritas besok:',entry['tomorrow-notes']||'-'];const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='jurnal-harian-'+dayKey+'.txt';a.click();URL.revokeObjectURL(url);});
+$('#clear-journals').addEventListener('click',()=>{if(confirm('Hapus semua jurnal tersimpan dari browser ini?')){safeSet('ritme-journal-history',{});renderJournals();}});
+</script>
+</body>
+</html>
